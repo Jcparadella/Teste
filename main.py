@@ -1,69 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# Configurações iniciais da página
-st.set_page_config(
-    page_title="Formulário de Registro - IHC",
-    page_icon="📝", # Ícone ajustado para formulário/registro
-    layout="centered",
-    initial_sidebar_state="expanded"
-)
-
-# Título principal da aplicação
-st.title("Sistema de Registro de Usuários")
-st.markdown("Preencha os campos abaixo para registrar e visualizar os dados.")
-
-# Inicializa o DataFrame no Session State se ele ainda não existe
-if 'df_registros' not in st.session_state:
-    st.session_state.df_registros = pd.DataFrame(columns=["Sexo", "Idade"])
-
-# --- Formulário de Registro ---
-st.header("Novo Registro")
-with st.form(key='registro_form', clear_on_submit=True):
-    col1, col2 = st.columns(2)
-    with col1:
-        sexo = st.selectbox(
-            "Sexo:",
-            options=["Masculino", "Feminino", "Outro", "Não Informar"],
-            help="Selecione o sexo do usuário."
-        )
-    with col2:
-        idade = st.number_input(
-            "Idade:",
-            min_value=0,
-            max_value=120,
-            value=25,
-            step=1,
-            help="Informe a idade do usuário (entre 0 e 120 anos)."
-        )
-
-    st.markdown("---") # Separador visual
-    submit_button = st.form_submit_button(label='Registrar')
-
-if submit_button:
-    if sexo and idade is not None:
-        novo_registro = pd.DataFrame([{"Sexo": sexo, "Idade": idade}])
-        st.session_state.df_registros = pd.concat([st.session_state.df_registros, novo_registro], ignore_index=True)
-        st.success("Registro adicionado com sucesso!")
-    else:
-        st.error("Por favor, preencha todos os campos para registrar.")
-
-### Tabela de Dados
-
-st.header("Dados Registrados")
-if not st.session_state.df_registros.empty:
-    st.dataframe(st.session_state.df_registros.style.set_properties(**{'background-color': '#f0f2f6', 'color': 'black'}), use_container_width=True)
-else:
-    st.info("Nenhum dado registrado ainda. Utilize o formulário acima para adicionar registros.")
-
-st.markdown("---")
-st.caption("Desenvolvido com Streamlit para IHC - 2025")
-
-
-import streamlit as st
-import pandas as pd
-
-# Configurações iniciais da página
+# --- Configuração da Página ---
 st.set_page_config(
     page_title="Formulário de Registro - IHC",
     page_icon="📝",
@@ -71,67 +9,83 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Título principal da aplicação
-st.title("Sistema de Registro de Usuários")
-st.markdown("Preencha os campos abaixo para registrar e visualizar os dados.")
+# --- Título e Descrição ---
+st.title("📝 Formulário de Registro Simples")
+st.markdown(
+    """
+    Olá! Este formulário interativo permite que você **registre dados de sexo e idade**,
+    exibindo-os em uma tabela logo abaixo e com a **opção de download em CSV**.
+    """
+)
+st.markdown("---")
 
-# Inicializa o DataFrame no Session State se ele ainda não existe
-if 'df_registros' not in st.session_state:
-    st.session_state.df_registros = pd.DataFrame(columns=["Sexo", "Idade"])
+# --- Inicialização da Sessão (para armazenar os dados) ---
+if 'dados_registrados' not in st.session_state:
+    st.session_state.dados_registrados = pd.DataFrame(columns=["Sexo", "Idade"])
+
+# --- Função para limpar os campos do formulário ---
+def clear_form_fields():
+    st.session_state.sexo_input_form = "Masculino"
+    st.session_state.idade_input_form = 25 # LINHA CORRIGIDA AQUI
 
 # --- Formulário de Registro ---
-st.header("Novo Registro")
-with st.form(key='registro_form', clear_on_submit=True):
+st.header("✨ Registrar Novo Usuário")
+
+# Definimos valores padrão para garantir que os campos sempre tenham um valor.
+if 'sexo_input_form' not in st.session_state:
+    st.session_state.sexo_input_form = "Masculino"
+if 'idade_input_form' not in st.session_state:
+    st.session_state.idade_input_form = 25 # LINHA CORRIGIDA AQUI
+
+with st.form("registro_form"):
     col1, col2 = st.columns(2)
     with col1:
         sexo = st.selectbox(
-            "Sexo:",
-            options=["Masculino", "Feminino", "Outro", "Não Informar"],
-            help="Selecione o sexo do usuário."
+            "Selecione o Sexo:",
+            ["Masculino", "Feminino", "Outro"],
+            key="sexo_input_form",
+            index=["Masculino", "Feminino", "Outro"].index(st.session_state.sexo_input_form)
         )
     with col2:
         idade = st.number_input(
-            "Idade:",
+            "Digite a Idade:",
             min_value=0,
             max_value=120,
-            value=25,
-            step=1,
-            help="Informe a idade do usuário (entre 0 e 120 anos)."
+            key="idade_input_form",
+            value=st.session_state.idade_input_form
         )
 
-    st.markdown("---") # Separador visual
-    submit_button = st.form_submit_button(label='Registrar')
+    st.markdown("---")
+    registrar_button = st.form_submit_button("✅ Registrar Dados", on_click=clear_form_fields)
 
-if submit_button:
-    if sexo and idade is not None:
-        novo_registro = pd.DataFrame([{"Sexo": sexo, "Idade": idade}])
-        st.session_state.df_registros = pd.concat([st.session_state.df_registros, novo_registro], ignore_index=True)
-        st.success("Registro adicionado com sucesso!")
-    else:
-        st.error("Por favor, preencha todos os campos para registrar.")
+    if registrar_button:
+        if sexo and idade is not None:
+            novo_registro = pd.DataFrame([{"Sexo": sexo, "Idade": idade}])
+            st.session_state.dados_registrados = pd.concat(
+                [st.session_state.dados_registrados, novo_registro], ignore_index=True
+            )
+            st.success("Dados registrados com sucesso!")
+        else:
+            st.warning("Por favor, preencha todos os campos antes de registrar.")
 
-### Tabela de Dados
+# --- Exibição da Tabela de Dados ---
+st.header("📋 Dados Registrados")
 
-st.header("Dados Registrados")
-if not st.session_state.df_registros.empty:
-    st.dataframe(st.session_state.df_registros.style.set_properties(**{'background-color': '#f0f2f6', 'color': 'black'}), use_container_width=True)
+if not st.session_state.dados_registrados.empty:
+    st.dataframe(st.session_state.dados_registrados, use_container_width=True)
 
     # --- Botão de Download CSV ---
-    st.markdown("---") # Separador visual para o botão
-    
     # Converte o DataFrame para CSV
-    # index=False evita que o índice do DataFrame seja escrito no CSV
-    csv = st.session_state.df_registros.to_csv(index=False).encode('utf-8')
-    
+    csv_data = st.session_state.dados_registrados.to_csv(index=False)
+
     st.download_button(
-        label="Download Tabela em CSV",
-        data=csv,
-        file_name="registros_usuarios.csv",
+        label="📥 Baixar Tabela em CSV",
+        data=csv_data,
+        file_name="dados_registrados.csv",
         mime="text/csv",
         help="Clique para baixar os dados da tabela em formato CSV."
     )
 else:
-    st.info("Nenhum dado registrado ainda. Utilize o formulário acima para adicionar registros.")
+    st.info("Nenhum dado registrado ainda. Use o formulário acima para começar!")
 
-st.markdown("---")
-st.caption("Desenvolvido com Streamlit para IHC - 2025")
+st.info("Desenvolvido com ❤️ por seu especialista em Python e Streamlit.")
