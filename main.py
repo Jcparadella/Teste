@@ -48,8 +48,6 @@ if submit_button:
     else:
         st.error("Por favor, preencha todos os campos para registrar.")
 
----
-
 ### Tabela de Dados
 
 st.header("Dados Registrados")
@@ -57,8 +55,6 @@ if not st.session_state.df_registros.empty:
     st.dataframe(st.session_state.df_registros.style.set_properties(**{'background-color': '#f0f2f6', 'color': 'black'}), use_container_width=True)
 else:
     st.info("Nenhum dado registrado ainda. Utilize o formulário acima para adicionar registros.")
-
----
 
 st.markdown("---")
 st.caption("Desenvolvido com Streamlit para IHC - 2025")
